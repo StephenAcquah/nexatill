@@ -2033,6 +2033,7 @@ const [loginUser, setLoginUser] = useState({ email: '', password: '' });
 const [signup, setSignup] = useState({ companyName: '', businessType: '', name: '', email: '', password: '' });
 const [showSignup, setShowSignup] = useState(false);
 const [isSubmitting, setIsSubmitting] = useState(false);
+const [authMessage, setAuthMessage] = useState('');
 const [isLogin, setIsLogin] = useState(!currentUser);
 const backupInputRef = useRef(null);
 const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -2040,15 +2041,18 @@ const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 const handleLogin = async () => {
 if (isSubmitting) return;
 if (!isValidEmail(loginUser.email)) {
+setAuthMessage('Enter a valid email address.');
 showToast('Enter a valid email address', 'error');
 return;
 }
 try {
 setIsSubmitting(true);
+setAuthMessage('Signing you in...');
 const session = await authenticate('/api/auth/login', loginUser);
 setIsLogin(false);
 showToast('Welcome, ' + session.user.name);
 } catch (error) {
+setAuthMessage(error.message);
 showToast(error.message, 'error');
 } finally {
 setIsSubmitting(false);
@@ -2064,24 +2068,29 @@ showToast('Logged out', 'info');
 const handleSignup = async () => {
 if (isSubmitting) return;
 if (!signup.companyName.trim() || !signup.businessType.trim() || !signup.name.trim() || !signup.email.trim() || !signup.password) {
+setAuthMessage('Complete all company and owner fields.');
 showToast('Complete all company and owner fields', 'error');
 return;
 }
 if (signup.password.length < 12) {
+setAuthMessage('Password must be at least 12 characters.');
 showToast('Password must be at least 12 characters', 'error');
 return;
 }
 if (!isValidEmail(signup.email)) {
+setAuthMessage('Enter a valid email address.');
 showToast('Enter a valid email address', 'error');
 return;
 }
 try {
 setIsSubmitting(true);
+setAuthMessage('Creating your company account...');
 const session = await authenticate('/api/auth/signup', signup);
 setIsLogin(false);
 setShowSignup(false);
 showToast('Company created. Welcome, ' + session.user.name);
 } catch (error) {
+setAuthMessage(error.message);
 showToast(error.message, 'error');
 } finally {
 setIsSubmitting(false);
@@ -2133,6 +2142,7 @@ if (isLogin || !currentUser) {
 return React.createElement('div', { className: 'max-w-sm mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg border border-gray-100' },
 React.createElement('h2', { className: 'text-2xl font-bold text-center text-gray-800 mb-2' }, '🔐 NexaTill'),
 React.createElement('p', { className: 'text-center text-gray-400 text-sm mb-6' }, showSignup ? 'Create your company account' : 'Sign in to your company'),
+authMessage && React.createElement('p', { role: 'alert', className: `text-center text-sm mb-3 ${authMessage.includes('...') ? 'text-amber-600' : 'text-rose-600'}` }, authMessage),
 React.createElement('div', { className: 'space-y-3' },
 showSignup && React.createElement(React.Fragment, null,
 React.createElement('input', { type: 'text', placeholder: 'Company name', required: true, value: signup.companyName, onChange: e => setSignup(prev => ({ ...prev, companyName: e.target.value })), className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm' }),

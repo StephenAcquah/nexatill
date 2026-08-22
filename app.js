@@ -2032,11 +2032,13 @@ const safeAuditLogs = Array.isArray(auditLogs) ? auditLogs : [];
 const hasSession = Boolean(DB.get(SESSION_KEY, null)?.accessToken);
 const [showAdd, setShowAdd] = useState(false);
 const [form, setForm] = useState({ name: '', email: '', password: '', role: 'cashier' });
+const [showStaffPassword, setShowStaffPassword] = useState(false);
 const [loginUser, setLoginUser] = useState({ email: '', password: '' });
 const [signup, setSignup] = useState({ companyName: '', businessType: '', name: '', email: '', password: '' });
 const [showSignup, setShowSignup] = useState(false);
 const [isSubmitting, setIsSubmitting] = useState(false);
 const [authMessage, setAuthMessage] = useState('');
+const [showAuthPassword, setShowAuthPassword] = useState(false);
 const [isLogin, setIsLogin] = useState(!currentUser || !hasSession);
 const backupInputRef = useRef(null);
 const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -2176,16 +2178,24 @@ onChange: (e) => showSignup ? setSignup(prev => ({ ...prev, email: e.target.valu
 className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm'
 }),
 showSignup && signup.email.length > 0 && !isValidEmail(signup.email) && React.createElement('p', { className: 'text-xs text-rose-600 -mt-2' }, 'Enter a valid email address, for example name@company.com.'),
+React.createElement('div', { className: 'relative' },
 React.createElement('input', {
-type: 'password',
+type: showAuthPassword ? 'text' : 'password',
 placeholder: showSignup ? 'Password (12+ characters)' : 'Password',
 autoComplete: showSignup ? 'new-password' : 'current-password',
 required: true,
 value: showSignup ? signup.password : loginUser.password,
 onChange: (e) => showSignup ? setSignup(prev => ({ ...prev, password: e.target.value })) : setLoginUser(prev => ({ ...prev, password: e.target.value })),
-className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm',
+className: 'w-full px-3 py-2 pr-20 border border-gray-200 rounded-lg text-sm',
 onKeyDown: (e) => e.key === 'Enter' && (showSignup ? handleSignup() : handleLogin())
 }),
+React.createElement('button', {
+type: 'button',
+onClick: () => setShowAuthPassword(!showAuthPassword),
+className: 'absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-gray-500 hover:text-amber-600',
+ariaLabel: showAuthPassword ? 'Hide password' : 'Show password'
+}, showAuthPassword ? 'Hide' : 'Show')
+),
 React.createElement('button', {
 onClick: showSignup ? handleSignup : handleLogin,
 disabled: isSubmitting,
@@ -2285,13 +2295,21 @@ onChange: (e) => setForm(prev => ({ ...prev, name: e.target.value })),
 className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm'
 }),
 React.createElement('input', { type: 'email', placeholder: 'Email *', value: form.email, onChange: e => setForm(prev => ({ ...prev, email: e.target.value })), className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm' }),
+React.createElement('div', { className: 'relative' },
 React.createElement('input', {
-type: 'password',
+type: showStaffPassword ? 'text' : 'password',
 placeholder: 'Password *',
 value: form.password,
 onChange: (e) => setForm(prev => ({ ...prev, password: e.target.value })),
-className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm'
+className: 'w-full px-3 py-2 pr-20 border border-gray-200 rounded-lg text-sm'
 }),
+React.createElement('button', {
+type: 'button',
+onClick: () => setShowStaffPassword(!showStaffPassword),
+className: 'absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-gray-500 hover:text-amber-600',
+ariaLabel: showStaffPassword ? 'Hide staff password' : 'Show staff password'
+}, showStaffPassword ? 'Hide' : 'Show')
+),
 React.createElement('select', {
 value: form.role,
 onChange: (e) => setForm(prev => ({ ...prev, role: e.target.value })),

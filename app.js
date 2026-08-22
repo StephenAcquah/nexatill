@@ -2027,6 +2027,9 @@ React.createElement('span', { className: 'text-sm font-medium text-amber-600' },
 // ---- Settings / Users ----
 function SettingsPage() {
 const { users, setUsers, currentUser, showToast, auditLogs, authenticate, logout, apiMutation } = useApp();
+const safeUsers = Array.isArray(users) ? users : [];
+const safeAuditLogs = Array.isArray(auditLogs) ? auditLogs : [];
+const hasSession = Boolean(DB.get(SESSION_KEY, null)?.accessToken);
 const [showAdd, setShowAdd] = useState(false);
 const [form, setForm] = useState({ name: '', email: '', password: '', role: 'cashier' });
 const [loginUser, setLoginUser] = useState({ email: '', password: '' });
@@ -2034,7 +2037,7 @@ const [signup, setSignup] = useState({ companyName: '', businessType: '', name: 
 const [showSignup, setShowSignup] = useState(false);
 const [isSubmitting, setIsSubmitting] = useState(false);
 const [authMessage, setAuthMessage] = useState('');
-const [isLogin, setIsLogin] = useState(!currentUser);
+const [isLogin, setIsLogin] = useState(!currentUser || !hasSession);
 const backupInputRef = useRef(null);
 const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
@@ -2138,7 +2141,7 @@ reader.readAsText(file);
 event.target.value = '';
 };
 
-if (isLogin || !currentUser) {
+if (isLogin || !currentUser || !hasSession) {
 return React.createElement('div', { className: 'max-w-sm mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg border border-gray-100' },
 React.createElement('h2', { className: 'text-2xl font-bold text-center text-gray-800 mb-2' }, '🔐 NexaTill'),
 React.createElement('p', { className: 'text-center text-gray-400 text-sm mb-6' }, showSignup ? 'Create your company account' : 'Sign in to your company'),
@@ -2227,11 +2230,24 @@ React.createElement('input', { ref: backupInputRef, type: 'file', accept: '.json
 ),
 React.createElement('div', { className: 'stat-card p-4' },
 React.createElement('p', { className: 'text-sm font-semibold text-gray-700 mb-2' }, '🛡️ Activity Log'),
-auditLogs.length === 0 ? React.createElement('p', { className: 'text-xs text-gray-400' }, 'No activity yet') :
-auditLogs.slice(-8).reverse().map(log => React.createElement('div', { key: log.id, className: 'flex justify-between gap-2 py-1.5 border-b border-gray-50 text-xs' },
+safeAuditLogs.length === 0 ? React.createElement('p', { className: 'text-xs text-gray-400' }, 'No activity yet') :
+safeAuditLogs.slice(-8).reverse().map(log => React.createElement('div', { key: log.id, className: 'flex justify-between gap-2 py-1.5 border-b border-gray-50 text-xs' },
 React.createElement('span', { className: 'text-gray-700' }, log.action, log.details ? ` · ${log.details}` : ''),
 React.createElement('span', { className: 'text-gray-400 whitespace-nowrap' }, new Date(log.date).toLocaleTimeString())
 ))
+),
+React.createElement('div', { className: 'stat-card p-4' },
+React.createElement('p', { className: 'text-sm font-semibold text-gray-700 mb-2' }, '📖 How NexaTill works'),
+React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600' },
+React.createElement('p', null, '1. Add products and set prices in Products.'),
+React.createElement('p', null, '2. Open the register before trading.'),
+React.createElement('p', null, '3. Add items to the cart and complete checkout.'),
+React.createElement('p', null, '4. Sales automatically reduce stock.'),
+React.createElement('p', null, '5. Record purchases to increase stock.'),
+React.createElement('p', null, '6. Use Reports and the activity log to review performance.'),
+React.createElement('p', null, '7. Managers can add cashiers and managers.'),
+React.createElement('p', null, '8. Each company sees only its own workspace.')
+)
 ),
 React.createElement('div', { className: 'flex items-center justify-between' },
 React.createElement('h3', { className: 'font-semibold text-gray-700' }, '👥 Users'),
@@ -2241,7 +2257,7 @@ className: 'btn-primary text-sm'
 }, '➕ Add User')
 ),
 React.createElement('div', { className: 'space-y-2' },
-users.map(u =>
+safeUsers.map(u =>
 React.createElement('div', { key: u.id, className: 'stat-card p-3 flex items-center justify-between' },
 React.createElement('div', null,
 React.createElement('p', { className: 'font-medium text-gray-800 text-sm' }, u.name),
@@ -2330,6 +2346,7 @@ function Tour({ step, onNext, onBack, onClose, onNavigate }) {
 // ---- Main App ----
 function App() {
 const { currentUser, currentCompany } = useApp();
+const hasSession = Boolean(DB.get(SESSION_KEY, null)?.accessToken);
 const [currentPage, setCurrentPage] = useState('dashboard');
 const [sidebarOpen, setSidebarOpen] = useState(false);
 const [cartOpen, setCartOpen] = useState(false);
@@ -2342,7 +2359,7 @@ useEffect(() => {
     return () => window.removeEventListener('nexatill:start-tour', openTour);
 }, []);
 
-if (!currentUser) return React.createElement(SettingsPage);
+if (!currentUser || !hasSession) return React.createElement(SettingsPage);
 
 const closeTour = () => {
     DB.set('tourComplete', true);

@@ -2021,21 +2021,26 @@ const [form, setForm] = useState({ name: '', email: '', password: '', role: 'cas
 const [loginUser, setLoginUser] = useState({ email: '', password: '' });
 const [signup, setSignup] = useState({ companyName: '', businessType: '', name: '', email: '', password: '' });
 const [showSignup, setShowSignup] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
 const [isLogin, setIsLogin] = useState(!currentUser);
 const backupInputRef = useRef(null);
 const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
 const handleLogin = async () => {
+if (isSubmitting) return;
 if (!isValidEmail(loginUser.email)) {
 showToast('Enter a valid email address', 'error');
 return;
 }
 try {
+setIsSubmitting(true);
 const session = await authenticate('/api/auth/login', loginUser);
 setIsLogin(false);
 showToast('Welcome, ' + session.user.name);
 } catch (error) {
 showToast(error.message, 'error');
+} finally {
+setIsSubmitting(false);
 }
 };
 
@@ -2046,6 +2051,7 @@ showToast('Logged out', 'info');
 };
 
 const handleSignup = async () => {
+if (isSubmitting) return;
 if (!signup.companyName.trim() || !signup.businessType.trim() || !signup.name.trim() || !signup.email.trim() || !signup.password) {
 showToast('Complete all company and owner fields', 'error');
 return;
@@ -2059,12 +2065,15 @@ showToast('Enter a valid email address', 'error');
 return;
 }
 try {
+setIsSubmitting(true);
 const session = await authenticate('/api/auth/signup', signup);
 setIsLogin(false);
 setShowSignup(false);
 showToast('Company created. Welcome, ' + session.user.name);
 } catch (error) {
 showToast(error.message, 'error');
+} finally {
+setIsSubmitting(false);
 }
 };
 
@@ -2155,8 +2164,9 @@ onKeyDown: (e) => e.key === 'Enter' && (showSignup ? handleSignup() : handleLogi
 }),
 React.createElement('button', {
 onClick: showSignup ? handleSignup : handleLogin,
+disabled: isSubmitting,
 className: 'w-full btn-primary'
-}, showSignup ? 'Create Company Account' : 'Sign In'),
+}, isSubmitting ? 'Connecting...' : (showSignup ? 'Create Company Account' : 'Sign In')),
 React.createElement('p', { className: 'text-xs text-gray-400 text-center mt-2' },
 React.createElement('button', { onClick: () => setShowSignup(!showSignup), className: 'text-amber-600 hover:text-amber-700 font-medium' }, showSignup ? 'Already have an account? Sign in' : 'Create a company account')
 )

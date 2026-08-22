@@ -1,2 +1,5 @@
-// Local default. GitHub Actions replaces this file with the hosted API URL.
-window.NEXATILL_API_URL = 'http://localhost:3000';
+// Use localhost during development and the hosted API for GitHub Pages clients.
+const isGitHubPages = window.location.hostname.endsWith('.github.io');
+window.NEXATILL_API_URL = isGitHubPages
+	? 'https://nexatill-api.onrender.com'
+	: 'http://localhost:3000';

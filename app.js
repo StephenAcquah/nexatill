@@ -238,8 +238,8 @@ function AppProvider({ children }) {
         try {
             session = await apiRequest(path, { method: 'POST', body: JSON.stringify(credentials) });
         } catch (error) {
-            if (error instanceof TypeError || error.message === 'Failed to fetch') {
-                throw new Error('Cannot reach the NexaTill server. Start the API with "npm start" and try again.');
+            if (error instanceof TypeError || error.message === 'Failed to fetch' || error.message.includes('too long')) {
+                throw new Error('Unable to complete your request right now. Please try again.');
             }
             throw error;
         }

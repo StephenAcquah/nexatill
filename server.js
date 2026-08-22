@@ -106,7 +106,7 @@ app.get('/health', async (_req, res) => {
 
 app.post('/api/auth/signup', async (req, res, next) => {
     const parsed = signupSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: 'Invalid signup details', details: parsed.error.flatten() });
+    if (!parsed.success) return res.status(400).json({ error: 'Please check your signup details and try again.' });
 
     const data = parsed.data;
     const client = await pool.connect();
@@ -134,7 +134,7 @@ app.post('/api/auth/signup', async (req, res, next) => {
 
 app.post('/api/auth/login', async (req, res, next) => {
     const parsed = loginSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: 'Invalid login details' });
+    if (!parsed.success) return res.status(400).json({ error: 'Please check your login details and try again.' });
     try {
         const result = await pool.query(
             `SELECT u.id, u.tenant_id, u.name, u.email, u.role, u.password_hash,
@@ -326,7 +326,7 @@ app.get('/api/products', requireAuth, async (req, res, next) => {
 
 app.use((error, _req, res, _next) => {
     console.error(error);
-    res.status(error.status || 500).json({ error: error.status ? error.message : 'Internal server error' });
+    res.status(error.status || 500).json({ error: error.status ? error.message : 'Unable to complete your request right now. Please try again.' });
 });
 
 app.listen(port, () => console.log(`NexaTill API listening on port ${port}`));

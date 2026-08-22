@@ -17,10 +17,21 @@ const API_BASE = window.NEXATILL_API_URL || 'http://localhost:3000';
 const SESSION_KEY = 'nexatill_session';
 
 async function apiRequest(path, options = {}, token = '') {
-    const response = await fetch(API_BASE + path, {
-        ...options,
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) }
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45000);
+    let response;
+    try {
+        response = await fetch(API_BASE + path, {
+            ...options,
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) }
+        });
+    } catch (error) {
+        if (error.name === 'AbortError') throw new Error('The server took too long to respond. Please try again.');
+        throw error;
+    } finally {
+        clearTimeout(timeout);
+    }
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Request failed');
     return data;

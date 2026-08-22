@@ -19,7 +19,18 @@ if (!jwtSecret || jwtSecret.length < 32) {
 }
 
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:8000' }));
+const allowedOrigins = new Set([
+    'http://localhost:8000',
+    'http://127.0.0.1:5500',
+    'https://stephenacquah.github.io',
+    ...(process.env.CLIENT_ORIGIN || '').split(',').map(origin => origin.trim()).filter(Boolean)
+]);
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+        return callback(new Error('Origin is not allowed'));
+    }
+}));
 app.use(express.json({ limit: '100kb' }));
 
 const signupSchema = z.object({

@@ -14,6 +14,8 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const port = Number(process.env.PORT || 3000);
 const jwtSecret = process.env.JWT_SECRET;
 const businessApprovalCode = process.env.BUSINESS_APPROVAL_CODE;
+const resendApiKey = process.env.RESEND_API_KEY;
+const reportFromEmail = process.env.REPORT_FROM_EMAIL;
 
 if (!jwtSecret || jwtSecret.length < 32) {
     throw new Error('JWT_SECRET must be set and at least 32 characters long');
@@ -242,6 +244,29 @@ app.get('/api/bootstrap', requireAuth, async (req, res, next) => {
             users: users.rows, register: register.rows[0] || { isOpen: false, openingCash: 0, openedAt: null },
             stockMovements: movements.rows, purchases: purchases.rows, auditLogs: auditLogs.rows });
     } catch (error) { next(error); }
+});
+
+app.post('/api/reports/email', requireAuth, async (req, res, next) => {
+    const recipient = typeof req.body?.recipient === 'string' ? req.body.recipient.trim() : '';
+    const subject = typeof req.body?.subject === 'string' ? req.body.subject.trim() : '';
+    const report = typeof req.body?.report === 'string' ? req.body.report.trim() : '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient) || !subject || !report) {
+        return res.status(400).json({ error: 'A valid email and report are required' });
+    }
+    if (!resendApiKey || !reportFromEmail) {
+        return res.status(503).json({ error: 'Email sending is not configured yet. Add RESEND_API_KEY and REPORT_FROM_EMAIL in Render.' });
+    }
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: reportFromEmail, to: [recipient], subject, text: report })
+        });
+        if (!response.ok) return res.status(502).json({ error: 'The email provider could not send the report' });
+        res.json({ ok: true });
+    } catch (error) {
+        next(error);
+    }
 });
 
 app.post('/api/products', requireAuth, async (req, res, next) => {

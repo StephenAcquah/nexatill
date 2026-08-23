@@ -43,6 +43,7 @@ Use GitHub Pages for the frontend and Render for the API plus PostgreSQL. GitHub
 2. In Render, create a new Blueprint from the repository. Render will use `render.yaml` to create the API and database.
 3. In the Render API service, set `CLIENT_ORIGIN` to your GitHub Pages URL, for example `https://YOUR-USERNAME.github.io/YOUR-REPOSITORY`.
 	Also set `BUSINESS_APPROVAL_CODE` to a private code. Give this code only to businesses you approve.
+	To send reports automatically, create a Resend account, verify a sending domain, then set `RESEND_API_KEY` and `REPORT_FROM_EMAIL` to the verified sender address.
 4. Deploy the API and copy its HTTPS URL, for example `https://nexatill-api.onrender.com`.
 5. In GitHub, open **Settings > Secrets and variables > Actions > Variables** and create `NEXATILL_API_URL` with that Render URL.
 6. Open **Settings > Pages**, choose **GitHub Actions**, and push to `main`.

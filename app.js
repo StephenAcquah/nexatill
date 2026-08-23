@@ -2032,7 +2032,7 @@ productSales[item.productId].revenue += item.quantity * item.sellingPrice;
 });
 });
 const bestSellers = Object.values(productSales).sort((a, b) => b.qty - a.qty).slice(0, 5);
-const sendDailyReport = () => {
+const sendDailyReport = async () => {
     const recipient = reportEmail.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
         showToast('Enter a valid report email address', 'error');
@@ -2047,9 +2047,13 @@ const sendDailyReport = () => {
         `Cash collected: ${formatCurrency(cashCollected)}`,
         `Transactions: ${todaySales.length}`
     ].join('\n');
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    const emailTab = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-    if (!emailTab) showToast('Allow pop-ups to open the email tab', 'error');
+    try {
+        const token = DB.get(SESSION_KEY, null)?.accessToken;
+        await apiRequest('/api/reports/email', { method: 'POST', body: JSON.stringify({ recipient, subject, report: body }) }, token);
+        showToast('Daily report sent successfully');
+    } catch (error) {
+        showToast(error.message, 'error');
+    }
 };
 
 return React.createElement('div', { className: 'space-y-5' },

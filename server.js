@@ -13,6 +13,7 @@ const app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const port = Number(process.env.PORT || 3000);
 const jwtSecret = process.env.JWT_SECRET;
+const businessApprovalCode = process.env.BUSINESS_APPROVAL_CODE;
 
 if (!jwtSecret || jwtSecret.length < 32) {
     throw new Error('JWT_SECRET must be set and at least 32 characters long');
@@ -34,6 +35,7 @@ app.use(cors({
 app.use(express.json({ limit: '100kb' }));
 
 const signupSchema = z.object({
+    accessCode: z.string().min(1).max(100),
     companyName: z.string().trim().min(2).max(120),
     businessType: z.enum([
         'Hardware shop', 'Provision shop', 'Grocery store', 'Clothing and fashion', 'Pharmacy',
@@ -107,6 +109,9 @@ app.get('/health', async (_req, res) => {
 app.post('/api/auth/signup', async (req, res, next) => {
     const parsed = signupSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: 'Please check your signup details and try again.' });
+    if (!businessApprovalCode || parsed.data.accessCode !== businessApprovalCode) {
+        return res.status(403).json({ error: 'A valid approval code is required. Contact the KoraPoint user.' });
+    }
 
     const data = parsed.data;
     const client = await pool.connect();

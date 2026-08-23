@@ -9,7 +9,7 @@ The API uses Node.js, Express, PostgreSQL, bcrypt password hashing, JWT access t
 
 1. Create a PostgreSQL database and enable `pgcrypto` (for UUIDs) and `citext`.
 2. Run `schema.sql` against that database.
-3. Copy `.env.example` to `.env` and set a random `JWT_SECRET` of at least 32 characters.
+3. Copy `.env.example` to `.env`, set a random `JWT_SECRET` of at least 32 characters, and set a private `BUSINESS_APPROVAL_CODE`.
 4. Install dependencies with `npm install`.
 5. Start the API with `npm start`.
 
@@ -42,6 +42,7 @@ Use GitHub Pages for the frontend and Render for the API plus PostgreSQL. GitHub
 1. Push this repository to GitHub.
 2. In Render, create a new Blueprint from the repository. Render will use `render.yaml` to create the API and database.
 3. In the Render API service, set `CLIENT_ORIGIN` to your GitHub Pages URL, for example `https://YOUR-USERNAME.github.io/YOUR-REPOSITORY`.
+	Also set `BUSINESS_APPROVAL_CODE` to a private code. Give this code only to businesses you approve.
 4. Deploy the API and copy its HTTPS URL, for example `https://nexatill-api.onrender.com`.
 5. In GitHub, open **Settings > Secrets and variables > Actions > Variables** and create `NEXATILL_API_URL` with that Render URL.
 6. Open **Settings > Pages**, choose **GitHub Actions**, and push to `main`.

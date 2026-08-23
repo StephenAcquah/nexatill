@@ -2118,7 +2118,7 @@ const [showAdd, setShowAdd] = useState(false);
 const [form, setForm] = useState({ name: '', email: '', password: '', role: 'cashier' });
 const [showStaffPassword, setShowStaffPassword] = useState(false);
 const [loginUser, setLoginUser] = useState({ email: '', password: '' });
-const [signup, setSignup] = useState({ companyName: '', businessType: '', name: '', email: '', password: '' });
+const [signup, setSignup] = useState({ accessCode: '', companyName: '', businessType: '', name: '', email: '', password: '' });
 const [showSignup, setShowSignup] = useState(false);
 const [isSubmitting, setIsSubmitting] = useState(false);
 const [authMessage, setAuthMessage] = useState('');
@@ -2156,7 +2156,7 @@ showToast('Logged out', 'info');
 
 const handleSignup = async () => {
 if (isSubmitting) return;
-if (!signup.companyName.trim() || !signup.businessType.trim() || !signup.name.trim() || !signup.email.trim() || !signup.password) {
+if (!signup.accessCode.trim() || !signup.companyName.trim() || !signup.businessType.trim() || !signup.name.trim() || !signup.email.trim() || !signup.password) {
 setAuthMessage('Complete all company and owner fields.');
 showToast('Complete all company and owner fields', 'error');
 return;
@@ -2231,10 +2231,11 @@ const startTour = () => window.dispatchEvent(new Event('nexatill:start-tour'));
 if (isLogin || !currentUser || !hasSession) {
 return React.createElement('div', { className: 'max-w-sm mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg border border-gray-100' },
 React.createElement('h2', { className: 'text-2xl font-bold text-center text-gray-800 mb-2' }, '🔐 KoraPoint'),
-React.createElement('p', { className: 'text-center text-gray-400 text-sm mb-6' }, 'Sign in to your approved company workspace'),
+React.createElement('p', { className: 'text-center text-gray-400 text-sm mb-6' }, showSignup ? 'Create your approved business workspace' : 'Sign in to your approved company workspace'),
 authMessage && React.createElement('p', { role: 'alert', className: `text-center text-sm mb-3 ${authMessage.includes('...') ? 'text-amber-600' : 'text-rose-600'}` }, authMessage),
 React.createElement('div', { className: 'space-y-3' },
 showSignup && React.createElement(React.Fragment, null,
+React.createElement('input', { type: 'password', placeholder: 'Approval code from KoraPoint user', required: true, value: signup.accessCode, onChange: e => setSignup(prev => ({ ...prev, accessCode: e.target.value })), className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm' }),
 React.createElement('input', { type: 'text', placeholder: 'Company name', required: true, value: signup.companyName, onChange: e => setSignup(prev => ({ ...prev, companyName: e.target.value })), className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm' }),
 React.createElement('select', { value: signup.businessType, required: true, onChange: e => setSignup(prev => ({ ...prev, businessType: e.target.value })), className: 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm' },
 React.createElement('option', { value: '' }, 'Select business type *'),
@@ -2287,7 +2288,10 @@ disabled: isSubmitting,
 className: 'w-full btn-primary'
 }, isSubmitting ? 'Connecting...' : (showSignup ? 'Create Company Account' : 'Sign In')),
 React.createElement('p', { className: 'text-xs text-gray-400 text-center mt-2' },
-React.createElement('a', { href: 'tel:+233509444509', className: 'text-amber-600 hover:text-amber-700 font-medium' }, 'Need access? Call 050 944 4509')
+React.createElement('div', { className: 'flex flex-col gap-2 text-center' },
+React.createElement('button', { onClick: () => setShowSignup(!showSignup), className: 'text-amber-600 hover:text-amber-700 font-medium' }, showSignup ? 'Already have an account? Sign in' : 'Approved by the user? Create your business account'),
+!showSignup && React.createElement('a', { href: 'tel:+233509444509', className: 'text-xs text-gray-400 hover:text-amber-600' }, 'Need approval? Call 050 944 4509')
+)
 )
 )
 );

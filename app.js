@@ -2039,7 +2039,7 @@ React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '�
 React.createElement('div', { className: 'flex flex-wrap gap-2 no-print' },
 React.createElement('button', { onClick: () => window.print(), className: 'btn-secondary text-sm' }, '🖨 Save as PDF'),
 React.createElement('input', { type: 'email', value: reportEmail, onChange: e => setReportEmail(e.target.value), placeholder: 'Report email', className: 'px-3 py-2 border border-gray-200 rounded-lg text-sm' }),
-React.createElement('button', { onClick: () => { if (!reportEmail.trim()) return; const body = `KoraPoint daily report for ${todayKey}%0D%0ARevenue: ${formatCurrency(closingRevenue)}%0D%0AGross profit: ${formatCurrency(closingProfit)}%0D%0AExpenses: ${formatCurrency(closingExpenses)}%0D%0ACash collected: ${formatCurrency(cashCollected)}`; window.location.href = `mailto:${encodeURIComponent(reportEmail.trim())}?subject=KoraPoint%20daily%20report%20${todayKey}&body=${body}`; }, className: 'btn-secondary text-sm' }, '✉ Email report')
+React.createElement('button', { onClick: () => { if (!reportEmail.trim()) return; const body = `KoraPoint daily report for ${todayKey}%0D%0ARevenue: ${formatCurrency(closingRevenue)}%0D%0AGross profit: ${formatCurrency(closingProfit)}%0D%0AExpenses: ${formatCurrency(closingExpenses)}%0D%0ACash collected: ${formatCurrency(cashCollected)}`; window.location.href = `mailto:${encodeURIComponent(reportEmail.trim())}?subject=KoraPoint%20daily%20report%20${todayKey}&body=${body}`; }, className: 'btn-secondary text-sm' }, '✉ Open email app')
 )
 ),
 // Summary cards
@@ -2187,6 +2187,7 @@ setIsSubmitting(false);
 };
 
 const handleAddUser = () => {
+if (!['owner', 'manager'].includes(currentUser?.role)) { showToast('Only the owner or a manager can manage staff', 'error'); return; }
 if (!form.name.trim() || !form.email.trim() || !form.password.trim()) { showToast('Name, email, and password required', 'error'); return; }
 if (users.find(u => u.name === form.name)) { showToast('User already exists', 'error'); return; }
 if (apiMutation('/api/users', 'POST', form, 'User added')) { setForm({ name: '', email: '', password: '', role: 'cashier' }); setShowAdd(false); return; }
@@ -2197,6 +2198,7 @@ setShowAdd(false);
 };
 
 const handleDeleteUser = (id) => {
+if (!['owner', 'manager'].includes(currentUser?.role)) { showToast('Only the owner or a manager can revoke access', 'error'); return; }
 if (id === currentUser?.id) { showToast('Cannot delete yourself', 'error'); return; }
 if (window.confirm('Delete this user?')) {
 if (apiMutation(`/api/users/${id}`, 'DELETE', undefined, 'User removed')) return;
@@ -2348,14 +2350,14 @@ React.createElement('p', null, '7. Managers can add cashiers and managers.'),
 React.createElement('p', null, '8. Each company sees only its own workspace.')
 )
 ),
-React.createElement('div', { className: 'flex items-center justify-between' },
+['owner', 'manager'].includes(currentUser?.role) && React.createElement('div', { className: 'flex items-center justify-between' },
 React.createElement('h3', { className: 'font-semibold text-gray-700' }, '👥 Users'),
 React.createElement('button', {
 onClick: () => setShowAdd(true),
 className: 'btn-primary text-sm'
 }, '➕ Add User')
 ),
-React.createElement('div', { className: 'space-y-2' },
+['owner', 'manager'].includes(currentUser?.role) && React.createElement('div', { className: 'space-y-2' },
 safeUsers.map(u =>
 React.createElement('div', { key: u.id, className: 'stat-card p-3 flex items-center justify-between' },
 React.createElement('div', null,

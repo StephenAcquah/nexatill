@@ -1,5 +1,5 @@
 For Windows, after PostgreSQL is installed and its `psql` command is on PATH, run `./start-api.ps1` to create a local `.env`, apply `schema.sql`, and start the API automatically.
-# NexaTill
+# KoraPoint
 
 A browser-based point-of-sale app with a multi-tenant API foundation. Each company gets an isolated tenant, and each tenant can have multiple staff accounts.
 

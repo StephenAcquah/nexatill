@@ -329,4 +329,4 @@ app.use((error, _req, res, _next) => {
     res.status(error.status || 500).json({ error: error.status ? error.message : 'Unable to complete your request right now. Please try again.' });
 });
 
-app.listen(port, () => console.log(`NexaTill API listening on port ${port}`));
+app.listen(port, () => console.log(`KoraPoint API listening on port ${port}`));

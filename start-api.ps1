@@ -18,5 +18,5 @@ if (-not (Test-Path '.env')) {
 $env:DATABASE_URL = ((Get-Content '.env' | Where-Object { $_ -match '^DATABASE_URL=' }) -replace '^DATABASE_URL=', '')
 Write-Host 'Applying database schema...'
 psql $env:DATABASE_URL -f schema.sql
-Write-Host 'Starting NexaTill API on http://localhost:3000 ...'
+Write-Host 'Starting KoraPoint API on http://localhost:3000 ...'
 npm start

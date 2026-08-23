@@ -596,7 +596,7 @@ function downloadBackup() {
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `nexatill-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `korapoint-backup-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(link.href);
 }
@@ -1623,7 +1623,7 @@ function SalesPage() {
 </style></head>
 <body>
     <div style="text-align:center;margin-bottom:12px;">
-        <h2 style="margin:0;">🏪 NexaTill</h2>
+        <h2 style="margin:0;">🏪 KoraPoint</h2>
         <p style="margin:2px 0;font-size:0.8rem;color:#666;">${new Date(sale.date).toLocaleString()}</p>
     </div>
     <div class="line"></div>
@@ -1650,7 +1650,7 @@ win.print();
 
     const shareReceipt = async (sale) => {
         const receiptText = [
-            'NexaTill Receipt',
+            'KoraPoint Receipt',
             new Date(sale.date).toLocaleString(),
             `Customer: ${sale.customerName || 'Walk-in Customer'}`,
             ...sale.items.map(item => `${item.productName} x${item.quantity} ${formatCurrency(item.quantity * item.sellingPrice)}`),
@@ -1659,7 +1659,7 @@ win.print();
         ].join('\n');
         try {
             if (navigator.share) {
-                await navigator.share({ title: 'NexaTill Receipt', text: receiptText });
+                await navigator.share({ title: 'KoraPoint Receipt', text: receiptText });
                 return;
             }
             await navigator.clipboard.writeText(receiptText);
@@ -2039,7 +2039,7 @@ React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '�
 React.createElement('div', { className: 'flex flex-wrap gap-2 no-print' },
 React.createElement('button', { onClick: () => window.print(), className: 'btn-secondary text-sm' }, '🖨 Save as PDF'),
 React.createElement('input', { type: 'email', value: reportEmail, onChange: e => setReportEmail(e.target.value), placeholder: 'Report email', className: 'px-3 py-2 border border-gray-200 rounded-lg text-sm' }),
-React.createElement('button', { onClick: () => { if (!reportEmail.trim()) return; const body = `NexaTill daily report for ${todayKey}%0D%0ARevenue: ${formatCurrency(closingRevenue)}%0D%0AGross profit: ${formatCurrency(closingProfit)}%0D%0AExpenses: ${formatCurrency(closingExpenses)}%0D%0ACash collected: ${formatCurrency(cashCollected)}`; window.location.href = `mailto:${encodeURIComponent(reportEmail.trim())}?subject=NexaTill%20daily%20report%20${todayKey}&body=${body}`; }, className: 'btn-secondary text-sm' }, '✉ Email report')
+React.createElement('button', { onClick: () => { if (!reportEmail.trim()) return; const body = `KoraPoint daily report for ${todayKey}%0D%0ARevenue: ${formatCurrency(closingRevenue)}%0D%0AGross profit: ${formatCurrency(closingProfit)}%0D%0AExpenses: ${formatCurrency(closingExpenses)}%0D%0ACash collected: ${formatCurrency(cashCollected)}`; window.location.href = `mailto:${encodeURIComponent(reportEmail.trim())}?subject=KoraPoint%20daily%20report%20${todayKey}&body=${body}`; }, className: 'btn-secondary text-sm' }, '✉ Email report')
 )
 ),
 // Summary cards
@@ -2230,8 +2230,8 @@ const startTour = () => window.dispatchEvent(new Event('nexatill:start-tour'));
 
 if (isLogin || !currentUser || !hasSession) {
 return React.createElement('div', { className: 'max-w-sm mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg border border-gray-100' },
-React.createElement('h2', { className: 'text-2xl font-bold text-center text-gray-800 mb-2' }, '🔐 NexaTill'),
-React.createElement('p', { className: 'text-center text-gray-400 text-sm mb-6' }, showSignup ? 'Create your company account' : 'Sign in to your company'),
+React.createElement('h2', { className: 'text-2xl font-bold text-center text-gray-800 mb-2' }, '🔐 KoraPoint'),
+React.createElement('p', { className: 'text-center text-gray-400 text-sm mb-6' }, 'Sign in to your approved company workspace'),
 authMessage && React.createElement('p', { role: 'alert', className: `text-center text-sm mb-3 ${authMessage.includes('...') ? 'text-amber-600' : 'text-rose-600'}` }, authMessage),
 React.createElement('div', { className: 'space-y-3' },
 showSignup && React.createElement(React.Fragment, null,
@@ -2287,7 +2287,7 @@ disabled: isSubmitting,
 className: 'w-full btn-primary'
 }, isSubmitting ? 'Connecting...' : (showSignup ? 'Create Company Account' : 'Sign In')),
 React.createElement('p', { className: 'text-xs text-gray-400 text-center mt-2' },
-React.createElement('a', { href: 'mailto:contact@nexatill.com?subject=NexaTill%20POS%20access%20request', className: 'text-amber-600 hover:text-amber-700 font-medium' }, 'Need access? Contact the user')
+React.createElement('a', { href: 'tel:+233509444509', className: 'text-amber-600 hover:text-amber-700 font-medium' }, 'Need access? Call 050 944 4509')
 )
 )
 );
@@ -2332,7 +2332,7 @@ React.createElement('span', { className: 'text-gray-400 whitespace-nowrap' }, ne
 ))
 ),
 React.createElement('div', { className: 'stat-card p-4' },
-React.createElement('p', { className: 'text-sm font-semibold text-gray-700 mb-2' }, '📖 How NexaTill works'),
+React.createElement('p', { className: 'text-sm font-semibold text-gray-700 mb-2' }, '📖 How KoraPoint works'),
 React.createElement('div', { className: 'grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600' },
 React.createElement('p', null, '1. Add products and set prices in Products.'),
 React.createElement('p', null, '2. Open the register before trading.'),
@@ -2449,10 +2449,11 @@ function Tour({ step, onNext, onBack, onClose, onNavigate }) {
 function LandingPage() {
     const [showLogin, setShowLogin] = useState(false);
     if (showLogin) return React.createElement(SettingsPage);
-    const contactHref = 'mailto:contact@nexatill.com?subject=NexaTill%20POS%20access%20request';
+    const contactHref = 'tel:+233509444509';
+    const whatsappHref = 'https://wa.me/233509444509?text=Hello%20KoraPoint%2C%20I%20would%20like%20access%20to%20the%20POS.';
     return React.createElement('div', { className: 'min-h-screen bg-slate-950 text-white' },
         React.createElement('header', { className: 'max-w-6xl mx-auto px-5 py-5 flex items-center justify-between' },
-            React.createElement('div', { className: 'text-xl font-bold' }, '🏪 NexaTill'),
+            React.createElement('div', { className: 'text-xl font-bold' }, '🏪 KoraPoint'),
             React.createElement('button', { onClick: () => setShowLogin(true), className: 'text-sm text-amber-300 hover:text-amber-200' }, 'Sign in')
         ),
         React.createElement('main', { className: 'max-w-6xl mx-auto px-5 pb-16' },
@@ -2460,13 +2461,13 @@ function LandingPage() {
                 React.createElement('div', null,
                     React.createElement('p', { className: 'text-amber-300 text-sm font-semibold uppercase tracking-widest mb-4' }, 'Point of sale for growing shops'),
                     React.createElement('h1', { className: 'text-4xl sm:text-6xl font-black leading-tight' }, 'Run the counter. Know the business.'),
-                    React.createElement('p', { className: 'mt-5 text-slate-300 text-lg max-w-xl' }, 'NexaTill keeps products, stock, sales, staff, and daily performance together so shop owners can serve customers quickly and make better decisions.'),
+                    React.createElement('p', { className: 'mt-5 text-slate-300 text-lg max-w-xl' }, 'KoraPoint keeps products, stock, sales, staff, and daily performance together so shop owners can serve customers quickly and make better decisions.'),
                     React.createElement('div', { className: 'flex flex-wrap gap-3 mt-8' },
                         React.createElement('a', { href: contactHref, className: 'btn-primary inline-block' }, 'Contact the user'),
                         React.createElement('button', { onClick: () => setShowLogin(true), className: 'px-5 py-2.5 rounded-lg border border-slate-600 text-white hover:bg-slate-800' }, 'Sign in to POS')
                     )
                 ),
-                React.createElement('div', { className: 'bg-white rounded-2xl p-4 shadow-2xl rotate-1' },
+            React.createElement('div', { className: 'bg-white rounded-2xl p-4 shadow-2xl rotate-1 landing-preview' },
                     React.createElement('div', { className: 'bg-slate-100 rounded-xl p-4 text-slate-800' },
                         React.createElement('div', { className: 'flex justify-between mb-4' }, React.createElement('strong', null, 'Today at a glance'), React.createElement('span', { className: 'text-emerald-600 text-sm' }, '● Live')),
                         React.createElement('div', { className: 'grid grid-cols-3 gap-2 mb-4' }, ['Sales GH₵ 2,480', 'Orders 38', 'Profit 620'].map(item => React.createElement('div', { key: item, className: 'bg-white rounded-lg p-3 text-xs font-semibold' }, item))),
@@ -2476,6 +2477,19 @@ function LandingPage() {
             ),
             React.createElement('section', { className: 'grid md:grid-cols-3 gap-4 mt-20' },
                 [['📦', 'Inventory control', 'Know what is in stock and what needs attention.'], ['🛒', 'Faster checkout', 'Keep multiple customer carts pending while you serve the next person.'], ['📈', 'Daily visibility', 'Review sales, profit, expenses, and activity from one workspace.']].map(item => React.createElement('div', { key: item[1], className: 'border border-slate-800 rounded-xl p-5' }, React.createElement('div', { className: 'text-2xl mb-3' }, item[0]), React.createElement('h2', { className: 'font-bold mb-2' }, item[1]), React.createElement('p', { className: 'text-slate-400 text-sm' }, item[2])))
+            ),
+            React.createElement('section', { className: 'mt-16 border-t border-slate-800 pt-10' },
+                React.createElement('div', { className: 'flex flex-wrap items-center justify-between gap-5' },
+                    React.createElement('div', null,
+                        React.createElement('p', { className: 'text-amber-300 text-sm font-semibold uppercase tracking-widest mb-2' }, 'Ready when you are'),
+                        React.createElement('h2', { className: 'text-2xl font-bold' }, 'Start your own business workspace'),
+                        React.createElement('p', { className: 'text-slate-400 mt-2 max-w-xl' }, 'Contact the KoraPoint user for approval. Once your account is created, you become the owner of your business workspace and can add managers and cashiers from Settings.')
+                    ),
+                    React.createElement('div', { className: 'flex flex-wrap gap-3' },
+                        React.createElement('a', { href: contactHref, className: 'btn-primary inline-block' }, 'Call 050 944 4509'),
+                        React.createElement('a', { href: whatsappHref, target: '_blank', rel: 'noreferrer', className: 'px-5 py-2.5 rounded-lg border border-emerald-500 text-emerald-300 hover:bg-emerald-950' }, 'WhatsApp us')
+                    )
+                )
             )
         )
     );
@@ -2547,7 +2561,7 @@ React.createElement('div', {
 className: `absolute top-0 left-0 bottom-0 w-72 bg-white shadow-2xl mobile-nav ${sidebarOpen ? 'open' : ''}`
 },
 React.createElement('div', { className: 'p-4 border-b border-gray-100' },
-React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '🏪 ', currentCompany?.name || 'NexaTill'),
+React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '🏪 ', currentCompany?.name || 'KoraPoint'),
 React.createElement('p', { className: 'text-xs text-gray-400' }, currentCompany?.business_type || 'Point of Sale')
 ),
 React.createElement('nav', { className: 'p-3 space-y-0.5' },
@@ -2569,7 +2583,7 @@ React.createElement('span', null, item.label)
 // Desktop sidebar
 const DesktopSidebar = () => React.createElement('div', { className: 'hidden lg:flex lg:flex-col lg:w-56 lg:flex-shrink-0 lg:bg-white lg:border-r lg:border-gray-100 lg:min-h-screen lg:sticky lg:top-0 lg:max-h-screen lg:overflow-y-auto' },
 React.createElement('div', { className: 'p-4 border-b border-gray-100' },
-React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '🏪 ', currentCompany?.name || 'NexaTill'),
+React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '🏪 ', currentCompany?.name || 'KoraPoint'),
 React.createElement('p', { className: 'text-xs text-gray-400' }, currentCompany?.business_type || 'Point of Sale')
 ),
 React.createElement('nav', { className: 'p-3 space-y-0.5 flex-1' },
@@ -2585,7 +2599,7 @@ React.createElement('span', null, item.label)
 )
 ),
 React.createElement('div', { className: 'p-3 border-t border-gray-100 text-xs text-gray-400' },
-'© 2026 NexaTill'
+'© 2026 KoraPoint'
 )
 );
 
@@ -2610,7 +2624,7 @@ React.createElement('span', { className: 'hamburger-line top' }),
 React.createElement('span', { className: 'hamburger-line middle' }),
 React.createElement('span', { className: 'hamburger-line bottom' })
 ),
-React.createElement('h1', { className: 'text-lg font-bold text-gray-800' }, '🏪 NexaTill')
+React.createElement('h1', { className: 'text-lg font-bold text-gray-800' }, '🏪 KoraPoint')
 ),
 React.createElement('button', {
 onClick: () => setCartOpen(true),

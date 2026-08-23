@@ -2,7 +2,7 @@
   "name": "nexatill-api",
   "version": "1.0.0",
   "private": true,
-  "description": "Multi-tenant API for NexaTill",
+  "description": "Multi-tenant API for KoraPoint",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

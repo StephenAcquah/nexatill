@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
     <title>KoraPoint — Multi-business Point of Sale</title>
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="KoraPoint point-of-sale workspace for growing businesses" />
+    <link rel="manifest" href="manifest.webmanifest" />
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- External libraries -->
@@ -20,5 +23,10 @@
 
     <!-- Your main application JavaScript -->
     <script src="app.js?v=4"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+        }
+    </script>
 </body>
 </html>

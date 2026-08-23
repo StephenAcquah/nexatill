@@ -2290,7 +2290,7 @@ className: 'w-full btn-primary'
 React.createElement('p', { className: 'text-xs text-gray-400 text-center mt-2' },
 React.createElement('div', { className: 'flex flex-col gap-2 text-center' },
 React.createElement('button', { onClick: () => setShowSignup(!showSignup), className: 'text-amber-600 hover:text-amber-700 font-medium' }, showSignup ? 'Already have an account? Sign in' : 'Approved by the user? Create your business account'),
-!showSignup && React.createElement('a', { href: 'tel:+233509444509', className: 'text-xs text-gray-400 hover:text-amber-600' }, 'Need approval? Call 050 944 4509')
+!showSignup && React.createElement('a', { href: 'https://wa.me/233509444509?text=Hello%20KoraPoint%2C%20I%20would%20like%20approval%20to%20use%20the%20POS.', target: '_blank', rel: 'noreferrer', className: 'text-xs text-gray-400 hover:text-amber-600' }, 'Need approval? WhatsApp 050 944 4509')
 )
 )
 )
@@ -2453,7 +2453,7 @@ function Tour({ step, onNext, onBack, onClose, onNavigate }) {
 function LandingPage() {
     const [showLogin, setShowLogin] = useState(false);
     if (showLogin) return React.createElement(SettingsPage);
-    const contactHref = 'tel:+233509444509';
+    const contactHref = 'https://wa.me/233509444509?text=Hello%20KoraPoint%2C%20I%20would%20like%20access%20to%20the%20POS.';
     const whatsappHref = 'https://wa.me/233509444509?text=Hello%20KoraPoint%2C%20I%20would%20like%20access%20to%20the%20POS.';
     return React.createElement('div', { className: 'min-h-screen bg-slate-950 text-white' },
         React.createElement('header', { className: 'max-w-6xl mx-auto px-5 py-5 flex items-center justify-between' },
@@ -2467,7 +2467,7 @@ function LandingPage() {
                     React.createElement('h1', { className: 'text-4xl sm:text-6xl font-black leading-tight' }, 'Run the counter. Know the business.'),
                     React.createElement('p', { className: 'mt-5 text-slate-300 text-lg max-w-xl' }, 'KoraPoint keeps products, stock, sales, staff, and daily performance together so shop owners can serve customers quickly and make better decisions.'),
                     React.createElement('div', { className: 'flex flex-wrap gap-3 mt-8' },
-                        React.createElement('a', { href: contactHref, className: 'btn-primary inline-block' }, 'Contact the user'),
+                        React.createElement('a', { href: contactHref, target: '_blank', rel: 'noreferrer', className: 'btn-primary inline-block' }, 'Contact on WhatsApp'),
                         React.createElement('button', { onClick: () => setShowLogin(true), className: 'px-5 py-2.5 rounded-lg border border-slate-600 text-white hover:bg-slate-800' }, 'Sign in to POS')
                     )
                 ),
@@ -2490,7 +2490,7 @@ function LandingPage() {
                         React.createElement('p', { className: 'text-slate-400 mt-2 max-w-xl' }, 'Contact the KoraPoint user for approval. Once your account is created, you become the owner of your business workspace and can add managers and cashiers from Settings.')
                     ),
                     React.createElement('div', { className: 'flex flex-wrap gap-3' },
-                        React.createElement('a', { href: contactHref, className: 'btn-primary inline-block' }, 'Call 050 944 4509'),
+                        React.createElement('a', { href: contactHref, target: '_blank', rel: 'noreferrer', className: 'btn-primary inline-block' }, 'WhatsApp 050 944 4509'),
                         React.createElement('a', { href: whatsappHref, target: '_blank', rel: 'noreferrer', className: 'px-5 py-2.5 rounded-lg border border-emerald-500 text-emerald-300 hover:bg-emerald-950' }, 'WhatsApp us')
                     )
                 )

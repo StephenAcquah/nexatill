@@ -204,6 +204,7 @@ function AppProvider({ children }) {
     const [purchases, setPurchases] = useState(() => DB.get('purchases', []));
     const [auditLogs, setAuditLogs] = useState(() => DB.get('auditLogs', []));
     const [cart, setCart] = useState([]);
+    const [parkedCarts, setParkedCarts] = useState(() => DB.get('parkedCarts', []));
     const savedSession = DB.get(SESSION_KEY, null);
     const [currentUser, setCurrentUser] = useState(() => savedSession?.user || null);
     const [currentCompany, setCurrentCompany] = useState(() => savedSession?.company || null);
@@ -213,6 +214,7 @@ function AppProvider({ children }) {
         setProducts([]); setSales([]); setCustomers([]); setSuppliers([]); setExpenses([]);
         setUsers([]); setRegister({ isOpen: false, openingCash: 0, openedAt: null });
         setStockMovements([]); setPurchases([]); setAuditLogs([]);
+        setParkedCarts([]); DB.set('parkedCarts', []);
     };
 
     const refreshTenantData = async () => {
@@ -431,6 +433,29 @@ function AppProvider({ children }) {
 
     const clearCart = () => setCart([]);
 
+    const parkCart = (name) => {
+        if (!cart.length) return false;
+        setParkedCarts(prev => {
+            const next = [...prev, { id: 'cart' + Date.now(), name: name || `Customer ${prev.length + 1}`, items: cart, savedAt: new Date().toISOString() }];
+            DB.set('parkedCarts', next);
+            return next;
+        });
+        setCart([]);
+        return true;
+    };
+
+    const resumeCart = (id) => {
+        const parked = parkedCarts.find(item => item.id === id);
+        if (!parked) return;
+        if (cart.length) parkCart('Previous customer');
+        setCart(parked.items);
+        setParkedCarts(prev => {
+            const next = prev.filter(item => item.id !== id);
+            DB.set('parkedCarts', next);
+            return next;
+        });
+    };
+
     const completeSale = (saleData) => {
         const token = DB.get(SESSION_KEY, null)?.accessToken;
         if (token) { apiRequest('/api/sales', { method: 'POST', body: JSON.stringify(saleData) }, token).then(() => refreshTenantData()).then(() => { clearCart(); showToast('Sale completed! Receipt generated.'); }).catch(error => showToast(error.message, 'error')); return null; }
@@ -505,6 +530,9 @@ function AppProvider({ children }) {
         refundSale,
         cart,
         setCart,
+        parkedCarts,
+        parkCart,
+        resumeCart,
         currentUser,
         setCurrentUser,
         currentCompany,
@@ -644,11 +672,15 @@ function ProductCard({ product, onEdit, onDelete, onAddToCart, onAdjustStock }) 
     const statusColor = outOfStock ? 'bg-rose-100 text-rose-700' : lowStock ? 'bg-amber-100 text-amber-700' :
         'bg-emerald-100 text-emerald-700';
     const statusText = outOfStock ? 'Out of Stock' : lowStock ? 'Low Stock' : 'In Stock';
+    const hasProductImage = typeof product.image === 'string' &&
+        (product.image.startsWith('data:image/') || product.image.startsWith('http'));
 
     return React.createElement('div', { className: 'product-card p-3.5 card-hover' },
         React.createElement('div', { className: 'flex items-start gap-3' },
             React.createElement('div', { className: 'w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl flex-shrink-0 border border-gray-100' },
-                product.image || '📦'
+                hasProductImage
+                    ? React.createElement('img', { src: product.image, alt: product.name, className: 'w-full h-full object-cover rounded-xl' })
+                    : product.image || '📦'
             ),
             React.createElement('div', { className: 'flex-1 min-w-0' },
                 React.createElement('p', { className: 'font-semibold text-gray-800 text-sm truncate' }, product
@@ -687,7 +719,7 @@ function ProductCard({ product, onEdit, onDelete, onAddToCart, onAdjustStock }) 
 
 // ---- Cart Sidebar ----
 function CartSidebar({ isOpen, onClose }) {
-    const { cart, removeFromCart, updateCartQty, clearCart, products, completeSale, showToast } = useApp();
+    const { cart, removeFromCart, updateCartQty, clearCart, products, completeSale, showToast, parkedCarts, parkCart, resumeCart } = useApp();
     const [showCheckout, setShowCheckout] = useState(false);
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
@@ -758,13 +790,24 @@ function CartSidebar({ isOpen, onClose }) {
                 }, '✕')
             )
         ),
+        React.createElement('div', { className: 'flex gap-2 p-3 border-b border-gray-100 bg-gray-50' },
+            React.createElement('button', { onClick: () => { const name = window.prompt('Name this pending cart', 'Customer'); if (name !== null && parkCart(name)) showToast('Cart saved as pending'); }, disabled: !cart.length, className: 'flex-1 btn-secondary text-xs disabled:opacity-50' }, '⏸ Park cart'),
+            React.createElement('button', { onClick: clearCart, disabled: !cart.length, className: 'flex-1 btn-secondary text-xs disabled:opacity-50' }, 'Clear cart')
+        ),
+        parkedCarts.length > 0 && React.createElement('div', { className: 'px-3 py-2 border-b border-amber-100 bg-amber-50' },
+            React.createElement('p', { className: 'text-xs font-semibold text-amber-800 mb-1' }, 'Pending carts'),
+            parkedCarts.map(item => React.createElement('button', { key: item.id, onClick: () => resumeCart(item.id), className: 'w-full flex justify-between text-xs text-amber-900 py-1 hover:underline' }, React.createElement('span', null, item.name), React.createElement('span', null, item.items.reduce((sum, line) => sum + line.quantity, 0), ' items')))
+        ),
         React.createElement('div', { className: 'flex-1 overflow-y-auto p-4', style: { maxHeight: 'calc(100vh - 180px)' } },
             cart.length === 0 ?
             React.createElement('p', { className: 'text-center text-gray-400 py-12' }, 'Your cart is empty') :
             cart.map(item =>
                 React.createElement('div', { key: item.productId, className: 'cart-item flex items-center gap-3' },
                     React.createElement('div', { className: 'w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-xl flex-shrink-0' },
-                        item.product.image || '📦'
+                        typeof item.product.image === 'string' &&
+                        (item.product.image.startsWith('data:image/') || item.product.image.startsWith('http'))
+                            ? React.createElement('img', { src: item.product.image, alt: item.product.name, className: 'w-full h-full object-cover rounded-lg' })
+                            : item.product.image || '📦'
                     ),
                     React.createElement('div', { className: 'flex-1 min-w-0' },
                         React.createElement('p', { className: 'font-medium text-sm text-gray-800 truncate' },
@@ -868,7 +911,7 @@ function CartSidebar({ isOpen, onClose }) {
                     disabled: paymentMethod !== 'Cash'
                 }),
                 paymentMethod === 'Cash' && React.createElement('p', { className: 'text-xs text-gray-500 mt-1' },
-                    'Change: ', formatCurrency(Math.max(0, (Number(cashReceived) || 0) - totalAmount)))
+                    'Balance after payment: ', formatCurrency(Math.max(0, (Number(cashReceived) || 0) - totalAmount)))
             ),
             React.createElement('div', { className: 'bg-gray-50 rounded-xl p-3 space-y-1 text-sm' },
                 React.createElement('div', { className: 'flex justify-between' },
@@ -878,6 +921,10 @@ function CartSidebar({ isOpen, onClose }) {
                 React.createElement('div', { className: 'flex justify-between font-bold text-lg' },
                     React.createElement('span', null, 'Total'),
                     React.createElement('span', { className: 'text-amber-600' }, formatCurrency(totalAmount))
+                ),
+                paymentMethod === 'Cash' && React.createElement('div', { className: 'flex justify-between text-sm text-emerald-700 font-semibold' },
+                    React.createElement('span', null, 'Customer balance'),
+                    React.createElement('span', null, formatCurrency(Math.max(0, (Number(cashReceived) || 0) - totalAmount)))
                 )
             ),
             React.createElement('button', {
@@ -1263,6 +1310,33 @@ function ProductForm({ product, onClose, mode }) {
     const [imageFile, setImageFile] = useState(null);
     const fileInputRef = useRef(null);
 
+    const readImageFile = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Unable to read image'));
+        reader.onload = () => {
+            const image = new Image();
+            image.onerror = () => reject(new Error('Unable to process image'));
+            image.onload = () => {
+                const maxDimension = 500;
+                const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(image.width * scale));
+                canvas.height = Math.max(1, Math.round(image.height * scale));
+                const context = canvas.getContext('2d');
+                context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                let quality = 0.68;
+                let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                while (dataUrl.length > 70000 && quality > 0.35) {
+                    quality -= 0.1;
+                    dataUrl = canvas.toDataURL('image/jpeg', quality);
+                }
+                resolve(dataUrl);
+            };
+            image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
     const categories = ['Cement', 'Nails', 'Paints', 'Electrical materials', 'Plumbing materials', 'Roofing materials',
         'Tools', 'Wood materials', 'Steel materials', 'Pipes', 'Tiles', 'Building blocks', 'Safety equipment',
         'Adhesives', 'Other'
@@ -1286,14 +1360,15 @@ function ProductForm({ product, onClose, mode }) {
         onClose();
     };
 
-    const handleImageUpload = (e) => {
+    const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                setForm(prev => ({ ...prev, image: ev.target.result }));
-            };
-            reader.readAsDataURL(file);
+            try {
+                const image = await readImageFile(file);
+                setForm(prev => ({ ...prev, image }));
+            } catch {
+                showToast('Unable to process image', 'error');
+            }
         }
     };
 
@@ -1303,14 +1378,15 @@ function ProductForm({ product, onClose, mode }) {
             input.type = 'file';
             input.accept = 'image/*';
             input.capture = 'environment';
-            input.onchange = (e) => {
+            input.onchange = async (e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        setForm(prev => ({ ...prev, image: ev.target.result }));
-                    };
-                    reader.readAsDataURL(file);
+                    try {
+                        const image = await readImageFile(file);
+                        setForm(prev => ({ ...prev, image }));
+                    } catch {
+                        showToast('Unable to process image', 'error');
+                    }
                 }
             };
             input.click();
@@ -1922,6 +1998,7 @@ React.createElement('button', { onClick: handleSave, className: 'btn-primary' },
 // ---- Reports Page ----
 function ReportsPage() {
 const { products, sales, expenses } = useApp();
+const [reportEmail, setReportEmail] = useState('');
 const activeSales = sales.filter(isActiveSale);
 const totalRevenue = activeSales.reduce((sum, s) => sum + s.total, 0);
 const totalProfit = activeSales.reduce((sum, s) => sum + (s.profit || 0), 0);
@@ -1957,7 +2034,14 @@ productSales[item.productId].revenue += item.quantity * item.sellingPrice;
 const bestSellers = Object.values(productSales).sort((a, b) => b.qty - a.qty).slice(0, 5);
 
 return React.createElement('div', { className: 'space-y-5' },
+React.createElement('div', { className: 'flex flex-wrap items-center justify-between gap-3' },
 React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '📊 Reports & Analytics'),
+React.createElement('div', { className: 'flex flex-wrap gap-2 no-print' },
+React.createElement('button', { onClick: () => window.print(), className: 'btn-secondary text-sm' }, '🖨 Save as PDF'),
+React.createElement('input', { type: 'email', value: reportEmail, onChange: e => setReportEmail(e.target.value), placeholder: 'Report email', className: 'px-3 py-2 border border-gray-200 rounded-lg text-sm' }),
+React.createElement('button', { onClick: () => { if (!reportEmail.trim()) return; const body = `NexaTill daily report for ${todayKey}%0D%0ARevenue: ${formatCurrency(closingRevenue)}%0D%0AGross profit: ${formatCurrency(closingProfit)}%0D%0AExpenses: ${formatCurrency(closingExpenses)}%0D%0ACash collected: ${formatCurrency(cashCollected)}`; window.location.href = `mailto:${encodeURIComponent(reportEmail.trim())}?subject=NexaTill%20daily%20report%20${todayKey}&body=${body}`; }, className: 'btn-secondary text-sm' }, '✉ Email report')
+)
+),
 // Summary cards
 React.createElement('div', { className: 'grid grid-cols-2 sm:grid-cols-3 gap-3' },
 React.createElement(StatCard, { icon: '💰', label: 'Total Revenue', value: formatCurrency(totalRevenue),
@@ -2138,10 +2222,11 @@ showToast('Invalid backup file', 'error');
 }
 };
 
-const startTour = () => window.dispatchEvent(new Event('nexatill:start-tour'));
 reader.readAsText(file);
 event.target.value = '';
 };
+
+const startTour = () => window.dispatchEvent(new Event('nexatill:start-tour'));
 
 if (isLogin || !currentUser || !hasSession) {
 return React.createElement('div', { className: 'max-w-sm mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg border border-gray-100' },
@@ -2202,7 +2287,7 @@ disabled: isSubmitting,
 className: 'w-full btn-primary'
 }, isSubmitting ? 'Connecting...' : (showSignup ? 'Create Company Account' : 'Sign In')),
 React.createElement('p', { className: 'text-xs text-gray-400 text-center mt-2' },
-React.createElement('button', { onClick: () => setShowSignup(!showSignup), className: 'text-amber-600 hover:text-amber-700 font-medium' }, showSignup ? 'Already have an account? Sign in' : 'Create a company account')
+React.createElement('a', { href: 'mailto:contact@nexatill.com?subject=NexaTill%20POS%20access%20request', className: 'text-amber-600 hover:text-amber-700 font-medium' }, 'Need access? Contact the user')
 )
 )
 );
@@ -2361,6 +2446,41 @@ function Tour({ step, onNext, onBack, onClose, onNavigate }) {
     );
 }
 
+function LandingPage() {
+    const [showLogin, setShowLogin] = useState(false);
+    if (showLogin) return React.createElement(SettingsPage);
+    const contactHref = 'mailto:contact@nexatill.com?subject=NexaTill%20POS%20access%20request';
+    return React.createElement('div', { className: 'min-h-screen bg-slate-950 text-white' },
+        React.createElement('header', { className: 'max-w-6xl mx-auto px-5 py-5 flex items-center justify-between' },
+            React.createElement('div', { className: 'text-xl font-bold' }, '🏪 NexaTill'),
+            React.createElement('button', { onClick: () => setShowLogin(true), className: 'text-sm text-amber-300 hover:text-amber-200' }, 'Sign in')
+        ),
+        React.createElement('main', { className: 'max-w-6xl mx-auto px-5 pb-16' },
+            React.createElement('section', { className: 'grid lg:grid-cols-2 gap-10 items-center pt-12 lg:pt-20' },
+                React.createElement('div', null,
+                    React.createElement('p', { className: 'text-amber-300 text-sm font-semibold uppercase tracking-widest mb-4' }, 'Point of sale for growing shops'),
+                    React.createElement('h1', { className: 'text-4xl sm:text-6xl font-black leading-tight' }, 'Run the counter. Know the business.'),
+                    React.createElement('p', { className: 'mt-5 text-slate-300 text-lg max-w-xl' }, 'NexaTill keeps products, stock, sales, staff, and daily performance together so shop owners can serve customers quickly and make better decisions.'),
+                    React.createElement('div', { className: 'flex flex-wrap gap-3 mt-8' },
+                        React.createElement('a', { href: contactHref, className: 'btn-primary inline-block' }, 'Contact the user'),
+                        React.createElement('button', { onClick: () => setShowLogin(true), className: 'px-5 py-2.5 rounded-lg border border-slate-600 text-white hover:bg-slate-800' }, 'Sign in to POS')
+                    )
+                ),
+                React.createElement('div', { className: 'bg-white rounded-2xl p-4 shadow-2xl rotate-1' },
+                    React.createElement('div', { className: 'bg-slate-100 rounded-xl p-4 text-slate-800' },
+                        React.createElement('div', { className: 'flex justify-between mb-4' }, React.createElement('strong', null, 'Today at a glance'), React.createElement('span', { className: 'text-emerald-600 text-sm' }, '● Live')),
+                        React.createElement('div', { className: 'grid grid-cols-3 gap-2 mb-4' }, ['Sales GH₵ 2,480', 'Orders 38', 'Profit 620'].map(item => React.createElement('div', { key: item, className: 'bg-white rounded-lg p-3 text-xs font-semibold' }, item))),
+                        React.createElement('div', { className: 'bg-white rounded-lg p-4' }, React.createElement('p', { className: 'text-xs text-slate-400 mb-3' }, 'Recent sales'), ['Cement  GH₵180', 'Paint  GH₵95', 'Nails  GH₵60'].map(item => React.createElement('div', { key: item, className: 'flex justify-between py-2 border-b border-slate-100 text-sm' }, React.createElement('span', null, item.split('  ')[0]), React.createElement('b', null, item.split('  ')[1]))))
+                    )
+                )
+            ),
+            React.createElement('section', { className: 'grid md:grid-cols-3 gap-4 mt-20' },
+                [['📦', 'Inventory control', 'Know what is in stock and what needs attention.'], ['🛒', 'Faster checkout', 'Keep multiple customer carts pending while you serve the next person.'], ['📈', 'Daily visibility', 'Review sales, profit, expenses, and activity from one workspace.']].map(item => React.createElement('div', { key: item[1], className: 'border border-slate-800 rounded-xl p-5' }, React.createElement('div', { className: 'text-2xl mb-3' }, item[0]), React.createElement('h2', { className: 'font-bold mb-2' }, item[1]), React.createElement('p', { className: 'text-slate-400 text-sm' }, item[2])))
+            )
+        )
+    );
+}
+
 // ---- Main App ----
 function App() {
 const { currentUser, currentCompany } = useApp();
@@ -2377,7 +2497,7 @@ useEffect(() => {
     return () => window.removeEventListener('nexatill:start-tour', openTour);
 }, []);
 
-if (!currentUser || !hasSession) return React.createElement(SettingsPage);
+if (!currentUser || !hasSession) return React.createElement(LandingPage);
 
 const closeTour = () => {
     DB.set('tourComplete', true);

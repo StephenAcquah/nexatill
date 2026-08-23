@@ -2032,6 +2032,25 @@ productSales[item.productId].revenue += item.quantity * item.sellingPrice;
 });
 });
 const bestSellers = Object.values(productSales).sort((a, b) => b.qty - a.qty).slice(0, 5);
+const sendDailyReport = () => {
+    const recipient = reportEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
+        showToast('Enter a valid report email address', 'error');
+        return;
+    }
+    const subject = `KoraPoint daily sales report - ${todayKey}`;
+    const body = [
+        `KoraPoint daily sales report for ${todayKey}`,
+        `Revenue: ${formatCurrency(closingRevenue)}`,
+        `Gross profit: ${formatCurrency(closingProfit)}`,
+        `Expenses: ${formatCurrency(closingExpenses)}`,
+        `Cash collected: ${formatCurrency(cashCollected)}`,
+        `Transactions: ${todaySales.length}`
+    ].join('\n');
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const emailTab = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    if (!emailTab) showToast('Allow pop-ups to open the email tab', 'error');
+};
 
 return React.createElement('div', { className: 'space-y-5' },
 React.createElement('div', { className: 'flex flex-wrap items-center justify-between gap-3' },
@@ -2039,7 +2058,7 @@ React.createElement('h2', { className: 'text-xl font-bold text-gray-800' }, '�
 React.createElement('div', { className: 'flex flex-wrap gap-2 no-print' },
 React.createElement('button', { onClick: () => window.print(), className: 'btn-secondary text-sm' }, '🖨 Save as PDF'),
 React.createElement('input', { type: 'email', value: reportEmail, onChange: e => setReportEmail(e.target.value), placeholder: 'Report email', className: 'px-3 py-2 border border-gray-200 rounded-lg text-sm' }),
-React.createElement('button', { onClick: () => { if (!reportEmail.trim()) return; const body = `KoraPoint daily report for ${todayKey}%0D%0ARevenue: ${formatCurrency(closingRevenue)}%0D%0AGross profit: ${formatCurrency(closingProfit)}%0D%0AExpenses: ${formatCurrency(closingExpenses)}%0D%0ACash collected: ${formatCurrency(cashCollected)}`; window.location.href = `mailto:${encodeURIComponent(reportEmail.trim())}?subject=KoraPoint%20daily%20report%20${todayKey}&body=${body}`; }, className: 'btn-secondary text-sm' }, '✉ Open email app')
+React.createElement('button', { onClick: sendDailyReport, className: 'btn-secondary text-sm' }, '✉ Open email tab')
 )
 ),
 // Summary cards

@@ -207,6 +207,43 @@ input:focus, select:focus, textarea:focus {
     object-fit: contain;
     border-radius: 8px;
 }
+.landing-preview {
+    animation: previewFloat 5s ease-in-out infinite;
+}
+.landing-preview::before,
+.landing-preview::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: #f59e0b;
+    opacity: 0.85;
+    animation: orbit 4s ease-in-out infinite;
+}
+.landing-preview::before {
+    top: 12%;
+    right: -22px;
+}
+.landing-preview::after {
+    bottom: 12%;
+    left: -22px;
+    background: #34d399;
+    animation-delay: -2s;
+}
+@keyframes previewFloat {
+    0%, 100% { transform: rotate(1deg) translateY(0); }
+    50% { transform: rotate(-1deg) translateY(-8px); }
+}
+@keyframes orbit {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(90deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .landing-preview,
+    .landing-preview::before,
+    .landing-preview::after { animation: none; }
+}
 .toast {
     animation: slideDown 0.3s ease;
 }
